@@ -34,25 +34,36 @@ namespace Sync_Storage_Creator_Windows
                 var full = await dbx.Users.GetCurrentAccountAsync();
                 Console.WriteLine("{0} - {1}", full.Name.DisplayName, full.Email);
 
-                await ListRootFolder(dbx);
+                await Sync(dbx);
             }
         }
 
-        async Task ListRootFolder(DropboxClient dbx)
+        async Task Sync(DropboxClient dbx)
         {
             var list = await dbx.Files.ListFolderAsync(string.Empty);
 
-            foreach (var item in list.Entries.Where(i => i.IsFile))
-            {
-                Console.WriteLine("F{0,8} {1}", item.AsFile.Size, item.Name);
-            }
 
-            // show folders then files
-            foreach (var item in list.Entries.Where(i => i.IsFolder))
-            {
-                Console.WriteLine("D  {0}/", item.Name);
-            }
+            await Download(dbx, "", "Mathe LK.pdf");
 
+            //foreach (var item in list.Entries.Where(i => i.IsFile))
+            //{
+            //    await Download(dbx, item.PathLower, item.Name);
+            //}
+            //
+            //// show folders then files
+            //foreach (var item in list.Entries.Where(i => i.IsFolder))
+            //{
+            //    Console.WriteLine("D  {0}/", item.Name);
+            //}
+
+        }
+
+        async Task Download(DropboxClient dbx, string folder, string file)
+        {
+            using (var response = await dbx.Files.DownloadAsync(folder + "/" + file))
+            {
+                System.IO.File.WriteAllBytes("c:\\users\\Daniel\\Desktop\\Dropbox\\" + folder + file, response.GetContentAsByteArrayAsync().Result);
+            }
         }
 
         private async Task<string> GetAccessToken()

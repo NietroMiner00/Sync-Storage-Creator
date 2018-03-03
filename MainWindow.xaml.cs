@@ -21,8 +21,7 @@ namespace Sync_Storage_Creator_Windows
     /// </summary>
     public partial class MainWindow : Window
     {
-        ContentProvider cont = new ContentProvider();
-        Task task;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -30,8 +29,12 @@ namespace Sync_Storage_Creator_Windows
 
         private void start_Click(object sender, RoutedEventArgs e)
         {
-            task = Task.Run((Func<Task>)ContentProvider.Run);
-            task.Wait();
+            ContentProvider.init();
+        }
+
+        private void Sync_Click(object sender, RoutedEventArgs e)
+        {
+            
         }
     }
 }

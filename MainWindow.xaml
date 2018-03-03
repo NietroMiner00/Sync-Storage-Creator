@@ -12,5 +12,6 @@
         <Label Content="Remote Directory:" HorizontalAlignment="Left" Margin="10,69,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="remDir" Height="23" Margin="10,100,10,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Button x:Name="start" Content="Start" HorizontalAlignment="Left" Margin="10,0,0,10" Width="75" Height="20" VerticalAlignment="Bottom" Click="start_Click"/>
+        <Button x:Name="Sync" Content="Sync" HorizontalAlignment="Left" Margin="90,0,0,10" VerticalAlignment="Bottom" Width="75" Click="Sync_Click"/>
     </Grid>
 </Window>

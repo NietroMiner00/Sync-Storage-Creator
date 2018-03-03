@@ -16,14 +16,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace SimpleTest
+namespace Sync_Storage_Creator_Windows
 {
     /// <summary>
     /// Interaction logic for UserControl1.xaml
     /// </summary>
     public partial class LoginForm : Window
     {
-        private const string RedirectUri = "https://localhost/authorize";
+        private const string RedirectUri = "http://localhost/authorize";
 
         private string oauth2State;
 

@@ -11,6 +11,6 @@
         <Label Content="Directory:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.05,-0.373"/>
         <Label Content="Remote Directory:" HorizontalAlignment="Left" Margin="10,69,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="remDir" Height="23" Margin="10,100,10,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Button x:Name="start" Content="Start" HorizontalAlignment="Left" Margin="10,0,0,10" Width="75" Height="20" VerticalAlignment="Bottom"/>
+        <Button x:Name="start" Content="Start" HorizontalAlignment="Left" Margin="10,0,0,10" Width="75" Height="20" VerticalAlignment="Bottom" Click="start_Click"/>
     </Grid>
 </Window>

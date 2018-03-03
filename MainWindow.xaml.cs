@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Dropbox.Api;
 
 namespace Sync_Storage_Creator_Windows
 {
@@ -20,9 +21,17 @@ namespace Sync_Storage_Creator_Windows
     /// </summary>
     public partial class MainWindow : Window
     {
+        ContentProvider cont = new ContentProvider();
+        Task task;
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void start_Click(object sender, RoutedEventArgs e)
+        {
+            task = Task.Run((Func<Task>)ContentProvider.Run);
+            task.Wait();
         }
     }
 }

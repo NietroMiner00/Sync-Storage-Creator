@@ -30,13 +30,14 @@ namespace Sync_Storage_Creator_Windows
             string path = System.IO.Directory.GetCurrentDirectory();
             dir.Text = path.Remove(path.LastIndexOf('\\'));
 
-            
+            if (!Settings.Default.remDir.Equals("")) remDir.Text = Settings.Default.remDir;
         }
 
         private void start_Click(object sender, RoutedEventArgs e)
         {
             ContentProvider.init(remDir.Text, dir.Text);
             Settings.Default.remDir = remDir.Text;
+            Settings.Default.Save();
         }
 
         private void Sync_Click(object sender, RoutedEventArgs e)

@@ -46,5 +46,17 @@ namespace Sync_Storage_Creator_Windows.Properties {
                 this["Uid"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string remDir {
+            get {
+                return ((string)(this["remDir"]));
+            }
+            set {
+                this["remDir"] = value;
+            }
+        }
     }
 }

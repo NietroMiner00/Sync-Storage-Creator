@@ -18,10 +18,18 @@ namespace Sync_Storage_Creator_Windows
     {
 
         private const string ApiKey = "776ru0jpqrbetf9";
+        string remDir;
+        string dir;
 
-        public static void init()
+        public ContentProvider(string remDir, string dir)
         {
-            var cont = new ContentProvider();
+            this.remDir = remDir;
+            this.dir = dir;
+        }
+
+        public static void init(string remDir, string dir)
+        {
+            var cont = new ContentProvider(remDir, dir);
             var task = Task.Run((Func<Task>)cont.Run);
             task.Wait();
         }
@@ -34,28 +42,27 @@ namespace Sync_Storage_Creator_Windows
                 var full = await dbx.Users.GetCurrentAccountAsync();
                 Console.WriteLine("{0} - {1}", full.Name.DisplayName, full.Email);
 
-                await Sync(dbx, "/sync/");
+                await Sync(dbx, remDir);
             }
         }
 
         async Task Sync(DropboxClient dbx, string path)
         {
-            var list = await dbx.Files.ListFolderAsync(path, recursive:true);
+            var list = await dbx.Files.ListFolderAsync(path.ToLower(), recursive:true);
 
             foreach (var item in list.Entries.Where(i => i.IsFile))
             {
                 string path2 = item.PathDisplay.Replace(item.Name, "");
                 await Download(dbx, path2, item.Name);
             }
-
         }
 
         async Task Download(DropboxClient dbx, string folder, string file)
         {
             using (var response = await dbx.Files.DownloadAsync(folder + file))
             {
-                System.IO.Directory.CreateDirectory("c:\\users\\Daniel\\Desktop\\Dropbox\\" + folder);
-                System.IO.File.WriteAllBytes("c:\\users\\Daniel\\Desktop\\Dropbox\\" + folder + file, response.GetContentAsByteArrayAsync().Result);
+                System.IO.Directory.CreateDirectory(dir + folder);
+                System.IO.File.WriteAllBytes(dir + folder + file, response.GetContentAsByteArrayAsync().Result);
             }
         }
 

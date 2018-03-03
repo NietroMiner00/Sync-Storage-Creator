@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Dropbox.Api;
+using Sync_Storage_Creator_Windows.Properties;
 
 namespace Sync_Storage_Creator_Windows
 {
@@ -25,11 +26,17 @@ namespace Sync_Storage_Creator_Windows
         public MainWindow()
         {
             InitializeComponent();
+
+            string path = System.IO.Directory.GetCurrentDirectory();
+            dir.Text = path.Remove(path.LastIndexOf('\\'));
+
+            
         }
 
         private void start_Click(object sender, RoutedEventArgs e)
         {
-            ContentProvider.init();
+            ContentProvider.init(remDir.Text, dir.Text);
+            Settings.Default.remDir = remDir.Text;
         }
 
         private void Sync_Click(object sender, RoutedEventArgs e)

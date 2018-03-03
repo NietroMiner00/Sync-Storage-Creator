@@ -62,7 +62,7 @@ namespace Sync_Storage_Creator_Windows
                 {
                     return;
                 }
-
+                
                 this.AccessToken = result.AccessToken;
                 this.Uid = result.Uid;
                 this.Result = true;

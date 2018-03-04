@@ -50,9 +50,65 @@ namespace Sync_Storage_Creator_Windows
             {
                 var full = await dbx.Users.GetCurrentAccountAsync();
                 Console.WriteLine("{0} - {1}", full.Name.DisplayName, full.Email);
-                
+
+                Dictionary<string, int> files = await Compare(dbx, dir, remDir);
                 await Sync(dbx, remDir);
             }
+        }
+
+        async Task<Dictionary<string, int>> Compare(DropboxClient dbx, string path, string dpath)
+        {
+            Dictionary<string, int> ret = new Dictionary<string, int>();
+            Dictionary<string, DateTime> Hfiles = new Dictionary<string, DateTime>();
+            try
+            {
+                string[] file = System.IO.Directory.GetFiles(path + dpath);
+                foreach (string i in file)
+                {
+                    Hfiles.Add(i.Replace("/", "\\"), File.GetLastWriteTime(i));
+                }
+            }catch(Exception e) { }
+            Dictionary<string, DateTime> Dfiles = new Dictionary<string, DateTime>();
+            try
+            {
+                var list = await dbx.Files.ListFolderAsync(dpath.ToLower());
+                foreach (var item in list.Entries.Where(i => i.IsFile))
+                {
+                    Dfiles.Add(item.PathDisplay, item.AsFile.ServerModified);
+                }
+            }catch(Exception e) { }
+
+            foreach(var Hfile in Hfiles)
+            {
+                string DfilePath = Hfile.Key.Replace(path, "").Replace("\\", "/");
+                if (Dfiles.ContainsKey(DfilePath))
+                {
+                    DateTime date;
+                    Dfiles.TryGetValue(DfilePath, out date);
+                    if (date.Subtract(Hfile.Value).TotalMinutes < 0)
+                    {
+                        ret.Add(Hfile.Key, 0);
+                    }
+                    else
+                    {
+                        ret.Add(DfilePath, 1);
+                    }
+                }
+                else
+                {
+                    ret.Add(Hfile.Key, 0);
+                }
+            }
+            
+            foreach(var Dfile in Dfiles)
+            {
+                string HfilePath = Dfile.Key.Insert(0, path).Replace("/", "\\");
+                if (!Hfiles.ContainsKey(HfilePath))
+                {
+                    ret.Add(Dfile.Key, 1);
+                }
+            }
+            return ret;
         }
 
         async Task Sync(DropboxClient dbx, string path)

@@ -108,6 +108,16 @@ namespace Sync_Storage_Creator_Windows
                     ret.Add(Dfile.Key, 1);
                 }
             }
+
+            var folders = await dbx.Files.ListFolderAsync(dpath.ToLower());
+            foreach (var folder in folders.Entries.Where(i => i.IsFolder))
+            {
+                Dictionary<string, int> files = await Compare(dbx, path, folder.PathDisplay);
+                foreach(var file in files)
+                {
+                    ret.Add(file.Key, file.Value);
+                }
+            }
             return ret;
         }
 

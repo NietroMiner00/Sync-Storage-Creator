@@ -109,15 +109,32 @@ namespace Sync_Storage_Creator_Windows
                 }
             }
 
-            var folders = await dbx.Files.ListFolderAsync(dpath.ToLower());
-            foreach (var folder in folders.Entries.Where(i => i.IsFolder))
+            try
             {
-                Dictionary<string, int> files = await Compare(dbx, path, folder.PathDisplay);
-                foreach(var file in files)
+                var Dfolders = await dbx.Files.ListFolderAsync(dpath.ToLower());
+                foreach (var folder in Dfolders.Entries.Where(i => i.IsFolder))
                 {
-                    ret.Add(file.Key, file.Value);
+                    Dictionary<string, int> files = await Compare(dbx, path, folder.PathDisplay);
+                    foreach (var file in files)
+                    {
+                        ret.Add(file.Key, file.Value);
+                    }
                 }
-            }
+            }catch(Exception e) { }
+
+            try
+            {
+                string[] Hfolders = Directory.GetDirectories(path + dpath);
+                foreach (string folder in Hfolders)
+                {
+                    Dictionary<string, int> files = await Compare(dbx, path, folder.Replace(path, "").Replace("\\", "/"));
+                    foreach (var file in files)
+                    {
+                        ret.Add(file.Key, file.Value);
+                    }
+                }
+            }catch(Exception e) { }
+
             return ret;
         }
 
@@ -150,6 +167,8 @@ namespace Sync_Storage_Creator_Windows
             using (var mem = new MemoryStream(File.ReadAllBytes(file)))
             {
                 string dfile = file.Replace(dir, "").Replace("\\", "/");
+                string folder = dfile.Remove(dfile.LastIndexOf("/")+1);
+                dbx.Files.CreateFolderV2Async(new CreateFolderArg(folder));
                 var updated = await dbx.Files.UploadAsync(
                     dfile,
                     WriteMode.Overwrite.Instance,

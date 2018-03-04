@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -34,6 +35,14 @@ namespace Sync_Storage_Creator_Windows
             task.Wait();
         }
 
+        public static string[] load()
+        {
+            var cont = new ContentProvider("", "");
+            var task = Task.Run((Func<Task<string[]>>)cont.AllFolders);
+            task.Wait();
+            return task.Result;
+        }
+
         public async Task Run()
         {
             string accessToken = await this.GetAccessToken();
@@ -41,7 +50,7 @@ namespace Sync_Storage_Creator_Windows
             {
                 var full = await dbx.Users.GetCurrentAccountAsync();
                 Console.WriteLine("{0} - {1}", full.Name.DisplayName, full.Email);
-
+                
                 await Sync(dbx, remDir);
             }
         }
@@ -63,6 +72,35 @@ namespace Sync_Storage_Creator_Windows
             {
                 System.IO.Directory.CreateDirectory(dir + folder);
                 System.IO.File.WriteAllBytes(dir + folder + file, response.GetContentAsByteArrayAsync().Result);
+            }
+        }
+
+        async Task Upload(DropboxClient dbx, string folder, string file, string content)
+        {
+            using (var mem = new MemoryStream(Encoding.UTF8.GetBytes(content)))
+            {
+                var updated = await dbx.Files.UploadAsync(
+                    folder + "/" + file,
+                    WriteMode.Overwrite.Instance,
+                    body: mem);
+                Console.WriteLine("Saved {0}/{1} rev {2}", folder, file, updated.Rev);
+            }
+        }
+
+        async Task<string[]> AllFolders()
+        {
+            string accessToken = await this.GetAccessToken();
+            using (var dbx = new DropboxClient(accessToken))
+            {
+                var list = await dbx.Files.ListFolderAsync(string.Empty);
+                string[] ret = new string[list.Entries.Where(i => i.IsFolder).Count()];
+                int g = 0;
+                foreach (var item in list.Entries.Where(i => i.IsFolder))
+                {
+                    ret[g] = item.PathDisplay;
+                    g++;
+                }
+                return ret;
             }
         }
 

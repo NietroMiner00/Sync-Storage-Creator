@@ -119,6 +119,10 @@ namespace Sync_Storage_Creator_Windows
                 {
                     await Download(dbx, file.Key);
                 }
+                else
+                {
+                    await Upload(dbx, file.Key);
+                }
             }
         }
 
@@ -131,15 +135,15 @@ namespace Sync_Storage_Creator_Windows
             }
         }
 
-        async Task Upload(DropboxClient dbx, string folder, string file, string content)
+        async Task Upload(DropboxClient dbx, string file)
         {
-            using (var mem = new MemoryStream(Encoding.UTF8.GetBytes(content)))
+            using (var mem = new MemoryStream(File.ReadAllBytes(file)))
             {
+                string dfile = file.Replace(dir, "").Replace("\\", "/");
                 var updated = await dbx.Files.UploadAsync(
-                    folder + "/" + file,
+                    dfile,
                     WriteMode.Overwrite.Instance,
                     body: mem);
-                Console.WriteLine("Saved {0}/{1} rev {2}", folder, file, updated.Rev);
             }
         }
 

@@ -52,7 +52,7 @@ namespace Sync_Storage_Creator_Windows
                 Console.WriteLine("{0} - {1}", full.Name.DisplayName, full.Email);
 
                 Dictionary<string, int> files = await Compare(dbx, dir, remDir);
-                await Sync(dbx, remDir);
+                await Sync(dbx, files);
             }
         }
 
@@ -65,7 +65,7 @@ namespace Sync_Storage_Creator_Windows
                 string[] file = System.IO.Directory.GetFiles(path + dpath);
                 foreach (string i in file)
                 {
-                    Hfiles.Add(i.Replace("/", "\\"), File.GetLastWriteTime(i));
+                    Hfiles.Add(i.Replace("/", "\\"), File.GetLastWriteTimeUtc(i));
                 }
             }catch(Exception e) { }
             Dictionary<string, DateTime> Dfiles = new Dictionary<string, DateTime>();
@@ -111,23 +111,23 @@ namespace Sync_Storage_Creator_Windows
             return ret;
         }
 
-        async Task Sync(DropboxClient dbx, string path)
+        async Task Sync(DropboxClient dbx, Dictionary<string, int> files)
         {
-            var list = await dbx.Files.ListFolderAsync(path.ToLower(), recursive:true);
-
-            foreach (var item in list.Entries.Where(i => i.IsFile))
+            foreach (var file in files)
             {
-                string path2 = item.PathDisplay.Replace(item.Name, "");
-                await Download(dbx, path2, item.Name);
+                if(file.Value == 1)
+                {
+                    await Download(dbx, file.Key);
+                }
             }
         }
 
-        async Task Download(DropboxClient dbx, string folder, string file)
+        async Task Download(DropboxClient dbx, string file)
         {
-            using (var response = await dbx.Files.DownloadAsync(folder + file))
+            using (var response = await dbx.Files.DownloadAsync(file))
             {
-                System.IO.Directory.CreateDirectory(dir + folder);
-                System.IO.File.WriteAllBytes(dir + folder + file, response.GetContentAsByteArrayAsync().Result);
+                System.IO.Directory.CreateDirectory(dir + file.Remove(file.LastIndexOf("/")));
+                System.IO.File.WriteAllBytes(dir + file, response.GetContentAsByteArrayAsync().Result);
             }
         }
 

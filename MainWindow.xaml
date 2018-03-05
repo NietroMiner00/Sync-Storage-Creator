@@ -12,6 +12,11 @@
         <Label Content="Remote Directory:" HorizontalAlignment="Left" Margin="10,69,0,0" VerticalAlignment="Top"/>
         <Button x:Name="start" Content="Start" HorizontalAlignment="Left" Margin="10,0,0,10" Width="75" Height="20" VerticalAlignment="Bottom" Click="start_Click"/>
         <Button x:Name="load" Content="Load Folders" HorizontalAlignment="Left" Margin="90,0,0,10" VerticalAlignment="Bottom" Width="75" Click="LoadFolders"/>
-        <ComboBox x:Name="remDir" HorizontalAlignment="Left" Margin="10,100,0,0" VerticalAlignment="Top" Width="499"/>
+        <ComboBox x:Name="remDir" Margin="10,100,10,0" VerticalAlignment="Top"/>
+        <Label Content="Downloaded:" HorizontalAlignment="Left" Margin="170,0,0,7" VerticalAlignment="Bottom"/>
+        <Label x:Name="downed" Content="0" HorizontalAlignment="Left" Margin="250,0,0,7" VerticalAlignment="Bottom"/>
+        <Label Content="Uploaded:" HorizontalAlignment="Left" Margin="271,0,0,7" VerticalAlignment="Bottom"/>
+        <Label x:Name="uped" Content="0" HorizontalAlignment="Left" Margin="335,0,0,7" VerticalAlignment="Bottom"/>
+        <Button x:Name="reset" Content="Reset" Margin="0,0,10,10" HorizontalAlignment="Right" Width="75" Height="20" VerticalAlignment="Bottom" Click="reset_Click"/>
     </Grid>
 </Window>

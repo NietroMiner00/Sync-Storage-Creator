@@ -45,20 +45,43 @@ namespace Sync_Storage_Creator_Windows
 
         public async Task Run()
         {
-            string accessToken = await this.GetAccessToken();
-            using (var dbx = new DropboxClient(accessToken))
+            try
             {
-                var full = await dbx.Users.GetCurrentAccountAsync();
-                Console.WriteLine("{0} - {1}", full.Name.DisplayName, full.Email);
+                string accessToken = await this.GetAccessToken();
+                using (var dbx = new DropboxClient(accessToken))
+                {
+                    var full = await dbx.Users.GetCurrentAccountAsync();
+                    Console.WriteLine("{0} - {1}", full.Name.DisplayName, full.Email);
 
-                Dictionary<string, int> files = await Compare(dbx, dir, remDir);
-                await Sync(dbx, files);
+                    Dictionary<string, int> files = await Compare(dbx, dir, remDir);
+                    await Sync(dbx, files);
+                }
+            }catch(Exception e) { Console.WriteLine(e.InnerException); }
+        }
+
+        public static string hasher(string path)
+        {
+            var hasher = new DropboxContentHasher();
+            byte[] buf = new byte[1024];
+            using (var file = File.OpenRead(path))
+            {
+                while (true)
+                {
+                    int n = file.Read(buf, 0, buf.Length);
+                    if (n <= 0) break;  // EOF
+                    hasher.TransformBlock(buf, 0, n, buf, 0);
+                }
             }
+
+            hasher.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+            string hexHash = DropboxContentHasher.ToHex(hasher.Hash);
+            return hexHash;
         }
 
         async Task<Dictionary<string, int>> Compare(DropboxClient dbx, string path, string dpath)
         {
             Dictionary<string, int> ret = new Dictionary<string, int>();
+            Dictionary<string, string> hashes = new Dictionary<string, string>();
             Dictionary<string, DateTime> Hfiles = new Dictionary<string, DateTime>();
             try
             {
@@ -66,6 +89,7 @@ namespace Sync_Storage_Creator_Windows
                 foreach (string i in file)
                 {
                     Hfiles.Add(i.Replace("/", "\\"), File.GetLastWriteTimeUtc(i));
+                    hashes.Add(i.Replace("/", "\\"), hasher(i.Replace("/", "\\")));
                 }
             }catch(Exception e) { }
             Dictionary<string, DateTime> Dfiles = new Dictionary<string, DateTime>();
@@ -74,7 +98,13 @@ namespace Sync_Storage_Creator_Windows
                 var list = await dbx.Files.ListFolderAsync(dpath.ToLower());
                 foreach (var item in list.Entries.Where(i => i.IsFile))
                 {
-                    Dfiles.Add(item.PathDisplay, item.AsFile.ServerModified);
+                    string hitemPath = path + item.PathDisplay.Replace("/", "\\");
+                    if (!hashes.Contains(new KeyValuePair<string, string>(hitemPath, item.AsFile.ContentHash))) Dfiles.Add(item.PathDisplay, item.AsFile.ServerModified);
+                    else
+                    {
+                        hashes.Remove(hitemPath);
+                        Hfiles.Remove(hitemPath);
+                    }
                 }
             }catch(Exception e) { }
 
@@ -103,7 +133,7 @@ namespace Sync_Storage_Creator_Windows
             foreach(var Dfile in Dfiles)
             {
                 string HfilePath = Dfile.Key.Insert(0, path).Replace("/", "\\");
-                if (!Hfiles.ContainsKey(HfilePath))
+                if (!ret.ContainsKey(HfilePath))
                 {
                     ret.Add(Dfile.Key, 1);
                 }
@@ -155,6 +185,7 @@ namespace Sync_Storage_Creator_Windows
 
         async Task Download(DropboxClient dbx, string file)
         {
+
             using (var response = await dbx.Files.DownloadAsync(file))
             {
                 System.IO.Directory.CreateDirectory(dir + file.Remove(file.LastIndexOf("/")));
@@ -178,19 +209,22 @@ namespace Sync_Storage_Creator_Windows
 
         async Task<string[]> AllFolders()
         {
-            string accessToken = await this.GetAccessToken();
-            using (var dbx = new DropboxClient(accessToken))
+            try
             {
-                var list = await dbx.Files.ListFolderAsync(string.Empty);
-                string[] ret = new string[list.Entries.Where(i => i.IsFolder).Count()];
-                int g = 0;
-                foreach (var item in list.Entries.Where(i => i.IsFolder))
+                string accessToken = await this.GetAccessToken();
+                using (var dbx = new DropboxClient(accessToken))
                 {
-                    ret[g] = item.PathDisplay;
-                    g++;
+                    var list = await dbx.Files.ListFolderAsync(string.Empty);
+                    string[] ret = new string[list.Entries.Where(i => i.IsFolder).Count()];
+                    int g = 0;
+                    foreach (var item in list.Entries.Where(i => i.IsFolder))
+                    {
+                        ret[g] = item.PathDisplay;
+                        g++;
+                    }
+                    return ret;
                 }
-                return ret;
-            }
+            }catch(Exception e){ Console.WriteLine(e.InnerException); return null;}
         }
 
         private async Task<string> GetAccessToken()

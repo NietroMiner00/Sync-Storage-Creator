@@ -39,9 +39,13 @@ namespace Sync_Storage_Creator_Windows
 
         private void start_Click(object sender, RoutedEventArgs e)
         {
-            ContentProvider.init(remDir.Text, dir.Text);
-            Settings.Default.remDir = remDir.SelectedItem.ToString();
-            Settings.Default.Save();
+            if (remDir.SelectedItem != null)
+            {
+                ContentProvider.init(remDir.Text, dir.Text);
+                Settings.Default.remDir = remDir.SelectedItem.ToString();
+                Settings.Default.Save();
+            }
+            else Console.WriteLine("Error: Select a folder!");
         }
 
         private void LoadFolders(object sender, RoutedEventArgs e)
@@ -49,11 +53,20 @@ namespace Sync_Storage_Creator_Windows
             string sel = (string)remDir.SelectedItem;
             remDir.Items.Clear();
             string[] paths = ContentProvider.load();
-            remDir.SelectedItem = sel;
-            foreach(string i in paths)
+            if (paths != null)
             {
-                remDir.Items.Add(i);
+                remDir.SelectedItem = sel;
+                foreach (string i in paths)
+                {
+                    remDir.Items.Add(i);
+                }
             }
+        }
+
+        private void reset_Click(object sender, RoutedEventArgs e)
+        {
+            Settings.Default.Reset();
+            remDir.Items.Clear();
         }
     }
 }

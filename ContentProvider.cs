@@ -28,11 +28,12 @@ namespace Sync_Storage_Creator_Windows
             this.dir = dir;
         }
 
-        public static void init(string remDir, string dir)
+        public static int[] init(string remDir, string dir)
         {
             var cont = new ContentProvider(remDir, dir);
-            var task = Task.Run((Func<Task>)cont.Run);
+            var task = Task.Run((Func<Task<int[]>>)cont.Run);
             task.Wait();
+            return task.Result;
         }
 
         public static string[] load()
@@ -43,7 +44,7 @@ namespace Sync_Storage_Creator_Windows
             return task.Result;
         }
 
-        public async Task Run()
+        public async Task<int[]> Run()
         {
             try
             {
@@ -54,9 +55,9 @@ namespace Sync_Storage_Creator_Windows
                     Console.WriteLine("{0} - {1}", full.Name.DisplayName, full.Email);
 
                     Dictionary<string, int> files = await Compare(dbx, dir, remDir);
-                    await Sync(dbx, files);
+                    return await Sync(dbx, files);
                 }
-            }catch(Exception e) { Console.WriteLine(e.InnerException); }
+            }catch(Exception e) { Console.WriteLine(e.InnerException); return new int[2]{0,0}; }
         }
 
         public static string hasher(string path)
@@ -168,19 +169,36 @@ namespace Sync_Storage_Creator_Windows
             return ret;
         }
 
-        async Task Sync(DropboxClient dbx, Dictionary<string, int> files)
+        async Task<int[]> Sync(DropboxClient dbx, Dictionary<string, int> files)
         {
+            int[] ret = new int[2]{0,0};
             foreach (var file in files)
             {
                 if(file.Value == 1)
                 {
-                    await Download(dbx, file.Key);
+                    try
+                    {
+                        await Download(dbx, file.Key);
+                        ret[0]++;
+                    }catch(Exception e)
+                    {
+                        Console.WriteLine("File" + file.Key + "wasn't downloaded");
+                    }
                 }
                 else
                 {
-                    await Upload(dbx, file.Key);
+                    try
+                    {
+                        await Upload(dbx, file.Key);
+                        ret[1]++;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("File" + file.Key + "wasn't uploaded");
+                    }
                 }
             }
+            return ret;
         }
 
         async Task Download(DropboxClient dbx, string file)

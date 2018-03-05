@@ -41,9 +41,11 @@ namespace Sync_Storage_Creator_Windows
         {
             if (remDir.SelectedItem != null)
             {
-                ContentProvider.init(remDir.Text, dir.Text);
+                int[] updown = ContentProvider.init(remDir.Text, dir.Text);
                 Settings.Default.remDir = remDir.SelectedItem.ToString();
                 Settings.Default.Save();
+                uped.Content = updown[1];
+                downed.Content = updown[0];
             }
             else Console.WriteLine("Error: Select a folder!");
         }
